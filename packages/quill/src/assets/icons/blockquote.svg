@@ -1,6 +1,6 @@
-<svg viewbox="0 0 18 18">
-  <rect class="ql-fill ql-stroke" height="3" width="3" x="4" y="5"></rect>
-  <rect class="ql-fill ql-stroke" height="3" width="3" x="11" y="5"></rect>
-  <path class="ql-even ql-fill ql-stroke" d="M7,8c0,4.031-3,5-3,5"></path>
-  <path class="ql-even ql-fill ql-stroke" d="M14,8c0,4.031-3,5-3,5"></path>
+<svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M4 3C4 2.44772 4.44772 2 5 2C5.55228 2 6 2.44772 6 3V15C6 15.5523 5.55228 16 5 16C4.44772 16 4 15.5523 4 15V3Z" fill="currentColor"/>
+  <path d="M8 4.75C8 4.33579 8.33579 4 8.75 4H15.25C15.6642 4 16 4.33579 16 4.75C16 5.16421 15.6642 5.5 15.25 5.5H8.75C8.33579 5.5 8 5.16421 8 4.75Z" fill="currentColor"/>
+  <path d="M8.75 8C8.33579 8 8 8.33579 8 8.75C8 9.16421 8.33579 9.5 8.75 9.5H15.25C15.6642 9.5 16 9.16421 16 8.75C16 8.33579 15.6642 8 15.25 8H8.75Z" fill="currentColor"/>
+  <path d="M8 12.75C8 12.3358 8.33579 12 8.75 12H15.25C15.6642 12 16 12.3358 16 12.75C16 13.1642 15.6642 13.5 15.25 13.5H8.75C8.33579 13.5 8 13.1642 8 12.75Z" fill="currentColor"/>
 </svg>

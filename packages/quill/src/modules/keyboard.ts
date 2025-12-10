@@ -631,6 +631,43 @@ const defaultOptions: KeyboardOptions = {
     'embed right shift': makeEmbedArrowHandler('ArrowRight', true),
     'table down': makeTableArrowHandler(false),
     'table up': makeTableArrowHandler(true),
+    'list indent': {
+      key: 'Tab',
+      format: ['list'],
+      handler(range, context) {
+        const formats = context.format;
+        const listFormat = formats.list as string;
+        const [listType, level = '1'] = listFormat.split(':');
+        const currentLevel = parseInt(level, 10);
+
+        if (currentLevel < 3) {
+          const newLevel = currentLevel + 1;
+          this.quill.formatLine(range.index, 1, 'list', `${listType}:${newLevel}`, Quill.sources.USER);
+          this.quill.setSelection(range.index, 0, Quill.sources.SILENT);
+          return false;
+        }
+        return true;
+      },
+    },
+    'list outdent': {
+      key: 'Tab',
+      shiftKey: true,
+      format: ['list'],
+      handler(range, context) {
+        const formats = context.format;
+        const listFormat = formats.list as string;
+        const [listType, level = '1'] = listFormat.split(':');
+        const currentLevel = parseInt(level, 10);
+
+        if (currentLevel > 1) {
+          const newLevel = currentLevel - 1;
+          this.quill.formatLine(range.index, 1, 'list', `${listType}:${newLevel}`, Quill.sources.USER);
+          this.quill.setSelection(range.index, 0, Quill.sources.SILENT);
+          return false;
+        }
+        return true;
+      },
+    },
   },
 };
 

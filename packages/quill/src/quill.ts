@@ -17,7 +17,9 @@ import Indent from './formats/indent.js';
 
 import Blockquote from './formats/blockquote.js';
 import Header from './formats/header.js';
-import List from './formats/list.js';
+import List from './formats/list-enhanced.js';
+import PageBreak from './formats/pagebreak.js';
+import ReadOnlyBlock from './formats/readonly-block.js';
 
 import { BackgroundClass, BackgroundStyle } from './formats/background.js';
 import { ColorClass, ColorStyle } from './formats/color.js';
@@ -86,6 +88,8 @@ Quill.register(
     'formats/code-block': CodeBlock,
     'formats/header': Header,
     'formats/list': List,
+    'formats/pagebreak': PageBreak,
+    'formats/readonly-block': ReadOnlyBlock,
 
     'formats/bold': Bold,
     'formats/code': InlineCode,

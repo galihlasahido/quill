@@ -1,14 +1,5 @@
-<svg viewbox="0 0 18 18">
-  <rect class="ql-stroke" height="12" width="12" x="3" y="3"></rect>
-  <rect class="ql-fill" height="12" width="1" x="5" y="3"></rect>
-  <rect class="ql-fill" height="12" width="1" x="12" y="3"></rect>
-  <rect class="ql-fill" height="2" width="8" x="5" y="8"></rect>
-  <rect class="ql-fill" height="1" width="3" x="3" y="5"></rect>
-  <rect class="ql-fill" height="1" width="3" x="3" y="7"></rect>
-  <rect class="ql-fill" height="1" width="3" x="3" y="10"></rect>
-  <rect class="ql-fill" height="1" width="3" x="3" y="12"></rect>
-  <rect class="ql-fill" height="1" width="3" x="12" y="5"></rect>
-  <rect class="ql-fill" height="1" width="3" x="12" y="7"></rect>
-  <rect class="ql-fill" height="1" width="3" x="12" y="10"></rect>
-  <rect class="ql-fill" height="1" width="3" x="12" y="12"></rect>
+<svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M3.5 4C2.67157 4 2 4.67157 2 5.5V12.5C2 13.3284 2.67157 14 3.5 14H10.5C11.3284 14 12 13.3284 12 12.5V5.5C12 4.67157 11.3284 4 10.5 4H3.5Z" fill="currentColor"/>
+  <path d="M13.1056 5.55279C13.0408 5.37048 12.8688 5.25 12.6761 5.25C12.4835 5.25 12.3114 5.37048 12.2467 5.55279L12 6.30902V11.691L12.2467 12.4472C12.3114 12.6295 12.4835 12.75 12.6761 12.75C12.8688 12.75 13.0408 12.6295 13.1056 12.4472L15.8521 5.05279C15.9508 4.79148 15.8132 4.5 15.5352 4.5H13.2465C13.1057 4.5 12.9755 4.57902 12.9107 4.70279L13.1056 5.55279Z" fill="currentColor"/>
+  <path d="M13 6.5L15.5 5V13L13 11.5V6.5Z" fill="currentColor"/>
 </svg>

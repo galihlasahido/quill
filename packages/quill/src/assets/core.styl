@@ -99,6 +99,72 @@ resets(arr)
     @supports not (counter-set: none)
       counter-reset: resets(1..MAX_INDENT)
 
+  // Enhanced list types with multi-level support
+  li[data-list=decimal]
+    counter-increment: list-0
+    > .ql-ui:before
+      content: counter(list-0, decimal) '. '
+
+  li[data-list=decimal][data-level="2"]
+    > .ql-ui:before
+      content: counter(list-0, decimal) '.' counter(list-1, decimal) ' '
+
+  li[data-list=decimal][data-level="3"]
+    > .ql-ui:before
+      content: counter(list-0, decimal) '.' counter(list-1, decimal) '.' counter(list-2, decimal) ' '
+
+  li[data-list=roman]
+    counter-increment: list-0
+    > .ql-ui:before
+      content: counter(list-0, upper-roman) '. '
+
+  li[data-list=roman][data-level="2"]
+    > .ql-ui:before
+      content: counter(list-0, upper-roman) '.' counter(list-1, upper-roman) ' '
+
+  li[data-list=roman][data-level="3"]
+    > .ql-ui:before
+      content: counter(list-0, upper-roman) '.' counter(list-1, upper-roman) '.' counter(list-2, upper-roman) ' '
+
+  li[data-list=roman-lower]
+    counter-increment: list-0
+    > .ql-ui:before
+      content: counter(list-0, lower-roman) '. '
+
+  li[data-list=roman-lower][data-level="2"]
+    > .ql-ui:before
+      content: counter(list-0, lower-roman) '.' counter(list-1, lower-roman) ' '
+
+  li[data-list=roman-lower][data-level="3"]
+    > .ql-ui:before
+      content: counter(list-0, lower-roman) '.' counter(list-1, lower-roman) '.' counter(list-2, lower-roman) ' '
+
+  li[data-list=alpha]
+    counter-increment: list-0
+    > .ql-ui:before
+      content: counter(list-0, upper-alpha) '. '
+
+  li[data-list=alpha][data-level="2"]
+    > .ql-ui:before
+      content: counter(list-0, upper-alpha) '.' counter(list-1, upper-alpha) ' '
+
+  li[data-list=alpha][data-level="3"]
+    > .ql-ui:before
+      content: counter(list-0, upper-alpha) '.' counter(list-1, upper-alpha) '.' counter(list-2, upper-alpha) ' '
+
+  li[data-list=alpha-lower]
+    counter-increment: list-0
+    > .ql-ui:before
+      content: counter(list-0, lower-alpha) '. '
+
+  li[data-list=alpha-lower][data-level="2"]
+    > .ql-ui:before
+      content: counter(list-0, lower-alpha) '.' counter(list-1, lower-alpha) ' '
+
+  li[data-list=alpha-lower][data-level="3"]
+    > .ql-ui:before
+      content: counter(list-0, lower-alpha) '.' counter(list-1, lower-alpha) '.' counter(list-2, lower-alpha) ' '
+
   li[data-list=ordered]
     counter-increment: list-0
     > .ql-ui:before
