@@ -411,15 +411,10 @@ const defaultOptions: KeyboardOptions = {
     tab: {
       key: 'Tab',
       handler(range, context) {
+        // Disable tab character insertion - use indent format instead
         if (context.format.table) return true;
-        this.quill.history.cutoff();
-        const delta = new Delta()
-          .retain(range.index)
-          .delete(range.length)
-          .insert('\t');
-        this.quill.updateContents(delta, Quill.sources.USER);
-        this.quill.history.cutoff();
-        this.quill.setSelection(range.index + 1, Quill.sources.SILENT);
+        // Apply indent format instead of inserting tab character
+        this.quill.format('indent', '+1', Quill.sources.USER);
         return false;
       },
     },
