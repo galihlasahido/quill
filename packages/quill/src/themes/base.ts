@@ -112,12 +112,53 @@ class BaseTheme extends Theme {
     buttons: NodeListOf<HTMLElement>,
     icons: Record<string, Record<string, string> | string>,
   ) {
+    // Tooltip labels for toolbar buttons
+    const tooltips: Record<string, string> = {
+      'bold': 'Bold',
+      'italic': 'Italic',
+      'underline': 'Underline',
+      'strike': 'Strikethrough',
+      'blockquote': 'Blockquote',
+      'code-block': 'Code Block',
+      'header': 'Heading',
+      'list': 'List',
+      'indent': 'Indent',
+      'direction': 'Text Direction',
+      'align': 'Align',
+      'link': 'Insert Link',
+      'image': 'Insert Image',
+      'video': 'Insert Video',
+      'formula': 'Insert Formula',
+      'clean': 'Clear Formatting',
+      'background': 'Background Color',
+      'color': 'Text Color',
+      'font': 'Font',
+      'size': 'Font Size',
+      'script': 'Subscript/Superscript',
+      'pagebreak': 'Insert Page Break',
+      'table': 'Insert Table',
+      'copy': 'Copy',
+      'cut': 'Cut',
+      'paste': 'Paste'
+    };
+
     Array.from(buttons).forEach((button) => {
       const className = button.getAttribute('class') || '';
       className.split(/\s+/).forEach((name) => {
         if (!name.startsWith('ql-')) return;
         name = name.slice('ql-'.length);
         if (icons[name] == null) return;
+
+        // Add tooltip title attribute
+        if (tooltips[name] && !button.getAttribute('title')) {
+          const value = (button as HTMLButtonElement).value;
+          if (value) {
+            button.setAttribute('title', `${tooltips[name]}: ${value}`);
+          } else {
+            button.setAttribute('title', tooltips[name]);
+          }
+        }
+
         if (name === 'direction') {
           // @ts-expect-error
           button.innerHTML = icons[name][''] + icons[name].rtl;
