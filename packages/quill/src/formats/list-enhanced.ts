@@ -36,6 +36,22 @@ class ListItem extends Block {
   static blotName = 'list';
   static tagName = 'LI';
 
+  // Whitelist for toolbar picker
+  static whitelist = [
+    'decimal:1',
+    'roman:1',
+    'roman-lower:1',
+    'alpha:1',
+    'alpha-lower:1',
+    'bullet:1',
+    'check:1',
+    // Legacy support
+    'ordered',
+    'bullet',
+    'check',
+    'unchecked'
+  ];
+
   static create(value: string) {
     const node = super.create() as HTMLLIElement;
     const [listType, level = '1'] = value.split(':');

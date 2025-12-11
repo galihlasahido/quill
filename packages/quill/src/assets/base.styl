@@ -230,7 +230,7 @@ colorItemsPerRow = 7
       top: 50%
       width: 18px
 
-  .ql-picker.ql-header, .ql-picker.ql-font, .ql-picker.ql-size
+  .ql-picker.ql-header, .ql-picker.ql-font, .ql-picker.ql-size, .ql-picker.ql-list
     .ql-picker-label[data-label]:not([data-label='']),
     .ql-picker-item[data-label]:not([data-label=''])
       &::before
@@ -294,6 +294,12 @@ colorItemsPerRow = 7
       font-size: 18px
     .ql-picker-item[data-value=huge]::before
       font-size: 32px
+
+  .ql-picker.ql-list
+    width: 108px
+    .ql-picker-label::before,
+    .ql-picker-item::before
+      content: 'List'
 
   .ql-color-picker.ql-background
     .ql-picker-item

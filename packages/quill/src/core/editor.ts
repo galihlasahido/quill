@@ -287,8 +287,7 @@ class Editor {
       const textBlot = this.scroll.find(mutations[0].target) as Blot;
       const formats = bubbleFormats(textBlot);
       const index = textBlot.offset(this.scroll);
-      // @ts-expect-error Fix me later
-      const oldValue = mutations[0].oldValue.replace(CursorBlot.CONTENTS, '');
+      const oldValue = mutations[0].oldValue ? mutations[0].oldValue.replace(CursorBlot.CONTENTS, '') : '';
       const oldText = new Delta().insert(oldValue);
       // @ts-expect-error
       const newText = new Delta().insert(textBlot.value());
