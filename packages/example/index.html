@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quill Editor Example - Full Featured</title>
+
+    <!-- Quill CSS (local custom build) -->
+    <link rel="stylesheet" href="/packages/quill/dist/dist/quill.snow.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Dark mode support */
+        body.dark {
+            background-color: #111827;
+            color: #f3f4f6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 16px 24px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .header {
+            background: #1f2937;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .dark .header h1 {
+            color: #f9fafb;
+        }
+
+        .dark-mode-toggle {
+            padding: 8px 16px;
+            background: #e5e7eb;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s;
+        }
+
+        .dark .dark-mode-toggle {
+            background: #374151;
+            color: #e5e7eb;
+        }
+
+        .dark-mode-toggle:hover {
+            background: #d1d5db;
+        }
+
+        .dark .dark-mode-toggle:hover {
+            background: #4b5563;
+        }
+
+        /* Toolbar wrapper */
+        .toolbar-wrapper {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .dark .toolbar-wrapper {
+            background: #1f2937;
+            border-bottom-color: #374151;
+        }
+
+        /* Document Container */
+        .document-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .document-container {
+            background: #1f2937;
+        }
+
+        /* Ruler styles */
+        .ruler-container {
+            height: 30px;
+            overflow: hidden;
+            position: relative;
+            background: #e5e7eb;
+            user-select: none;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        .dark .ruler-container {
+            background: #374151;
+            border-bottom-color: #4b5563;
+        }
+
+        .ruler {
+            max-width: 21cm;
+            margin: 0 auto;
+            position: relative;
+            height: 100%;
+            display: flex;
+        }
+
+        .ruler-margin-left,
+        .ruler-margin-right {
+            width: 1.27cm;
+            height: 100%;
+            background: #d1d5db;
+            position: relative;
+        }
+
+        .dark .ruler-margin-left,
+        .dark .ruler-margin-right {
+            background: #4b5563;
+        }
+
+        .ruler-content {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            background: white;
+        }
+
+        .dark .ruler-content {
+            background: #1f2937;
+        }
+
+        .ruler-tick {
+            position: absolute;
+            bottom: 0;
+            width: 1px;
+            background: #6b7280;
+        }
+
+        .dark .ruler-tick {
+            background: #9ca3af;
+        }
+
+        .ruler-tick.tiny { height: 3px; }
+        .ruler-tick.small { height: 5px; }
+        .ruler-tick.medium { height: 8px; }
+        .ruler-tick.large { height: 12px; }
+
+        .ruler-number {
+            position: absolute;
+            top: 2px;
+            font-size: 9px;
+            color: #374151;
+            font-family: Arial, sans-serif;
+            transform: translateX(-50%);
+        }
+
+        .dark .ruler-number {
+            color: #d1d5db;
+        }
+
+        /* Ruler indent markers */
+        .ruler-marker {
+            position: absolute;
+            bottom: 0;
+            cursor: ew-resize;
+            user-select: none;
+            z-index: 10;
+        }
+
+        .ruler-marker-left {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 10px solid #2563eb;
+        }
+
+        .dark .ruler-marker-left {
+            border-bottom-color: #3b82f6;
+        }
+
+        .ruler-marker-right {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 10px solid #2563eb;
+        }
+
+        .dark .ruler-marker-right {
+            border-bottom-color: #3b82f6;
+        }
+
+        .ruler-marker-first-line {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 10px solid #2563eb;
+            bottom: 10px;
+        }
+
+        .dark .ruler-marker-first-line {
+            border-top-color: #3b82f6;
+        }
+
+        .ruler-marker:hover {
+            opacity: 0.8;
+        }
+
+        .ruler-marker.dragging {
+            opacity: 0.6;
+        }
+
+        /* Editor Area - Google Docs style background */
+        .editor-area {
+            position: relative;
+            background: #e8eaed !important;
+            padding: 20px !important;
+            min-height: calc(29.7cm + 40px);
+            overflow-y: auto;
+        }
+
+        .dark .editor-area {
+            background: #202124 !important;
+        }
+
+        /* Quill Editor - A4 paper size */
+        .quill-editor {
+            font-family: "Bookman Old Style", Georgia, serif;
+            font-size: 12pt;
+            background: white !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            max-width: 21cm;
+            min-height: 29.7cm;
+            margin: 0 auto;
+        }
+
+        .dark .quill-editor {
+            background: #1f2937 !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .quill-editor .ql-editor {
+            padding: 1.27cm;
+            font-size: 12pt;
+            line-height: 1.5;
+            min-height: 29.7cm;
+        }
+
+        .dark .quill-editor .ql-editor {
+            color: #f3f4f6;
+            background-color: #1f2937;
+        }
+
+        /* Reduce paragraph spacing */
+        .quill-editor .ql-editor p {
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1.5;
+        }
+
+        /* Custom fonts */
+        .ql-font-arial, .ql-editor .ql-font-arial { font-family: Arial, sans-serif; }
+        .ql-font-times-new-roman, .ql-editor .ql-font-times-new-roman { font-family: "Times New Roman", Times, serif; }
+        .ql-font-courier, .ql-editor .ql-font-courier { font-family: "Courier New", Courier, monospace; }
+        .ql-font-georgia, .ql-editor .ql-font-georgia { font-family: Georgia, serif; }
+        .ql-font-verdana, .ql-editor .ql-font-verdana { font-family: Verdana, sans-serif; }
+        .ql-font-calibri, .ql-editor .ql-font-calibri { font-family: Calibri, sans-serif; }
+        .ql-font-tahoma, .ql-editor .ql-font-tahoma { font-family: Tahoma, sans-serif; }
+        .ql-font-trebuchet, .ql-editor .ql-font-trebuchet { font-family: "Trebuchet MS", sans-serif; }
+        .ql-font-bookman, .ql-editor .ql-font-bookman { font-family: "Bookman Old Style", serif; }
+        .ql-font-comic-sans, .ql-editor .ql-font-comic-sans { font-family: "Comic Sans MS", cursive; }
+
+        /* Font picker dropdown - show fonts in their own style */
+        .ql-picker.ql-font .ql-picker-item[data-value="arial"]::before { font-family: Arial, sans-serif; }
+        .ql-picker.ql-font .ql-picker-item[data-value="times-new-roman"]::before { font-family: "Times New Roman", Times, serif; }
+        .ql-picker.ql-font .ql-picker-item[data-value="courier"]::before { font-family: "Courier New", Courier, monospace; }
+        .ql-picker.ql-font .ql-picker-item[data-value="georgia"]::before { font-family: Georgia, serif; }
+        .ql-picker.ql-font .ql-picker-item[data-value="verdana"]::before { font-family: Verdana, sans-serif; }
+        .ql-picker.ql-font .ql-picker-item[data-value="calibri"]::before { font-family: Calibri, sans-serif; }
+        .ql-picker.ql-font .ql-picker-item[data-value="tahoma"]::before { font-family: Tahoma, sans-serif; }
+        .ql-picker.ql-font .ql-picker-item[data-value="trebuchet"]::before { font-family: "Trebuchet MS", sans-serif; }
+        .ql-picker.ql-font .ql-picker-item[data-value="bookman"]::before { font-family: "Bookman Old Style", serif; }
+        .ql-picker.ql-font .ql-picker-item[data-value="comic-sans"]::before { font-family: "Comic Sans MS", cursive; }
+
+        /* Toolbar styles */
+        .ql-toolbar.ql-snow {
+            border: none;
+            border-bottom: 1px solid #e5e7eb;
+            background: #fafafa;
+            padding: 10px;
+        }
+
+        .dark .ql-toolbar.ql-snow {
+            background: #1f2937;
+            border-bottom-color: #374151;
+        }
+
+        .ql-toolbar.ql-snow button {
+            width: 28px !important;
+            height: 28px !important;
+            padding: 3px !important;
+            margin: 0 1px !important;
+        }
+
+        .ql-toolbar.ql-snow button:hover {
+            background-color: #e8e8e8 !important;
+            border-radius: 4px;
+        }
+
+        .dark .ql-toolbar.ql-snow button:hover {
+            background-color: #374151 !important;
+        }
+
+        .ql-toolbar.ql-snow button.ql-active {
+            background-color: #d0d0d0 !important;
+            border-radius: 4px;
+        }
+
+        .dark .ql-toolbar.ql-snow button.ql-active {
+            background-color: #4b5563 !important;
+        }
+
+        /* Toolbar section separators */
+        .ql-toolbar .ql-formats {
+            margin-right: 15px;
+            padding-right: 15px;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .dark .ql-toolbar .ql-formats {
+            border-right-color: #374151;
+        }
+
+        .ql-toolbar .ql-formats:last-child {
+            border-right: none;
+        }
+
+        /* Dark mode for picker labels and strokes */
+        .dark .ql-toolbar.ql-snow .ql-picker-label,
+        .dark .ql-toolbar.ql-snow .ql-picker-item {
+            color: #d1d5db;
+        }
+
+        .dark .ql-toolbar.ql-snow .ql-stroke {
+            stroke: #d1d5db;
+        }
+
+        .dark .ql-toolbar.ql-snow .ql-fill {
+            fill: #d1d5db;
+        }
+
+        .dark .ql-toolbar.ql-snow .ql-picker-options {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        /* Container border in snow theme */
+        .ql-container.ql-snow {
+            border: none;
+        }
+
+        /* Override Quill's default size picker label */
+        .ql-picker.ql-size .ql-picker-label:not([data-label])::before {
+            content: '12pt' !important;
+        }
+
+        /* Table styles */
+        .quill-editor table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .quill-editor table td,
+        .quill-editor table th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        .dark .quill-editor table td,
+        .dark .quill-editor table th {
+            border-color: #4b5563;
+        }
+
+        /* Table resize visual indicators */
+        .ql-editor table td.resize-col-active,
+        .ql-editor table th.resize-col-active {
+            border-right: 2px solid #3b82f6 !important;
+            position: relative;
+        }
+
+        .ql-editor table td.resize-row-active,
+        .ql-editor table th.resize-row-active {
+            border-bottom: 2px solid #3b82f6 !important;
+            position: relative;
+        }
+
+        /* Table context menu */
+        .table-context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 4px 0;
+            z-index: 1000;
+            min-width: 200px;
+            display: none;
+        }
+
+        .dark .table-context-menu {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        .table-context-menu-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dark .table-context-menu-item {
+            color: #e5e7eb;
+        }
+
+        .table-context-menu-item:hover {
+            background: #f3f4f6;
+        }
+
+        .dark .table-context-menu-item:hover {
+            background: #4b5563;
+        }
+
+        .table-context-menu-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 4px 0;
+        }
+
+        .dark .table-context-menu-divider {
+            background: #4b5563;
+        }
+
+        /* Table size selector popup */
+        .table-size-selector {
+            display: none;
+            position: fixed;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .dark .table-size-selector {
+            background: #374151;
+            border-color: #4b5563;
+        }
+
+        .table-size-selector.active {
+            display: block;
+        }
+
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 24px);
+            grid-template-rows: repeat(10, 24px);
+            gap: 2px;
+            margin-bottom: 8px;
+        }
+
+        .table-grid-cell {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .dark .table-grid-cell {
+            border-color: #4b5563;
+            background: #1f2937;
+        }
+
+        .table-grid-cell.highlight {
+            background: #3b82f6;
+            border-color: #2563eb;
+        }
+
+        .table-size-label {
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .dark .table-size-label {
+            color: #9ca3af;
+        }
+
+        /* Modal styles */
+        .properties-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .properties-modal.active {
+            display: flex;
+        }
+
+        .properties-modal-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 24px;
+            min-width: 400px;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .dark .properties-modal-content {
+            background-color: #1f2937;
+            color: #f3f4f6;
+        }
+
+        .properties-modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #111827;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dark .properties-modal-header {
+            color: #f9fafb;
+        }
+
+        .properties-modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .dark .form-group label {
+            color: #d1d5db;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #111827;
+            background-color: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .dark .form-group input,
+        .dark .form-group select {
+            background-color: #374151;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+
+        .form-row-inline {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .properties-modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.15s;
+        }
+
+        .btn-cancel {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-cancel:hover {
+            background-color: #e5e7eb;
+        }
+
+        .dark .btn-cancel {
+            background-color: #374151;
+            color: #d1d5db;
+        }
+
+        .dark .btn-cancel:hover {
+            background-color: #4b5563;
+        }
+
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+
+        /* Image styles */
+        .quill-editor img {
+            max-width: 100%;
+            height: auto;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .quill-editor img:hover {
+            opacity: 0.9;
+        }
+
+        .quill-editor img.selected-image {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        /* Page Break Styling */
+        .ql-page-break {
+            display: block;
+            height: 20px;
+            background: transparent;
+            margin: 1em 0;
+            padding: 0;
+            position: relative;
+            page-break-after: always;
+            break-after: page;
+            user-select: none;
+            cursor: default;
+            border: none;
+        }
+
+        .ql-page-break > div {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #cbd5e0 20%, #cbd5e0 80%, transparent 100%);
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .dark .ql-page-break > div {
+            background: linear-gradient(90deg, transparent 0%, #4b5563 20%, #4b5563 80%, transparent 100%);
+        }
+
+        /* Hidden textarea for form submission */
+        .hidden-textarea {
+            display: none;
+        }
+
+        /* Form actions */
+        .form-actions {
+            margin-top: 20px;
+            padding: 16px 24px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .dark .form-actions {
+            background: #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Quill Editor - Full Featured Example</h1>
+            <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        </div>
+
+        <!-- Document Container -->
+        <form id="editor-form" action="#" method="POST">
+            <div class="document-container">
+                <!-- Toolbar Container -->
+                <div id="toolbar-container" class="toolbar-wrapper"></div>
+
+                <!-- Ruler -->
+                <div class="ruler-container">
+                    <div class="ruler" id="ruler">
+                        <div class="ruler-margin-left"></div>
+                        <div class="ruler-content" id="ruler-content"></div>
+                        <div class="ruler-margin-right"></div>
+                    </div>
+                </div>
+
+                <!-- Editor Area -->
+                <div class="editor-area">
+                    <div id="editor" class="quill-editor">
+                        <p>Start typing your document here...</p>
+                    </div>
+                </div>
+
+                <!-- Hidden textarea for form submission -->
+                <textarea name="content" id="content" class="hidden-textarea"></textarea>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-cancel" onclick="clearEditor()">Clear</button>
+                <button type="button" class="btn btn-cancel" onclick="getContent()">Get Content</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Size Selector -->
+    <div id="table-size-selector" class="table-size-selector">
+        <div class="table-grid" id="table-grid"></div>
+        <div class="table-size-label" id="table-size-label">Select table size</div>
+    </div>
+
+    <!-- Table Context Menu -->
+    <div id="table-context-menu" class="table-context-menu">
+        <div class="table-context-menu-item" data-action="insert-row-above">
+            <span>&#8593;</span> Insert Row Above
+        </div>
+        <div class="table-context-menu-item" data-action="insert-row-below">
+            <span>&#8595;</span> Insert Row Below
+        </div>
+        <div class="table-context-menu-item" data-action="delete-row">
+            <span>&#8722;</span> Delete Row
+        </div>
+        <div class="table-context-menu-divider"></div>
+        <div class="table-context-menu-item" data-action="insert-column-left">
+            <span>&#8592;</span> Insert Column Left
+        </div>
+        <div class="table-context-menu-item" data-action="insert-column-right">
+            <span>&#8594;</span> Insert Column Right
+        </div>
+        <div class="table-context-menu-item" data-action="delete-column">
+            <span>&#8722;</span> Delete Column
+        </div>
+        <div class="table-context-menu-divider"></div>
+        <div class="table-context-menu-item" data-action="cell-properties">
+            <span>&#9643;</span> Cell Properties
+        </div>
+        <div class="table-context-menu-item" data-action="table-properties">
+            <span>&#9638;</span> Table Properties
+        </div>
+        <div class="table-context-menu-divider"></div>
+        <div class="table-context-menu-item" data-action="delete-table">
+            <span>&#215;</span> Delete Table
+        </div>
+    </div>
+
+    <!-- List Context Menu -->
+    <div id="list-context-menu" class="table-context-menu">
+        <div class="table-context-menu-item" data-action="change-list-style">
+            <span>&#8226;</span> Change list style &#9656;
+        </div>
+        <div class="table-context-menu-item" data-action="reset-numbering">
+            <span>&#8634;</span> Reset numbering
+        </div>
+        <div class="table-context-menu-item" style="display: flex; align-items: center; gap: 8px;" data-action="start-from">
+            <span>&#9655;</span>
+            <span>Start from:</span>
+            <input type="number" id="list-start-number" min="1" value="1" placeholder="Enter number"
+                   style="width: 80px; padding: 2px 6px; border: 1px solid #d1d5db; border-radius: 4px; background: white; color: #111827;"
+                   onclick="event.stopPropagation()"
+                   onkeydown="if(event.key==='Enter'){event.target.dispatchEvent(new Event('change')); event.stopPropagation();}">
+        </div>
+    </div>
+
+    <!-- List Style Submenu -->
+    <div id="list-style-submenu" class="table-context-menu" style="display: none;">
+        <div class="table-context-menu-item" data-list-style="decimal:1">
+            <span>1, 2, 3</span>
+        </div>
+        <div class="table-context-menu-item" data-list-style="roman:1">
+            <span>I, II, III</span>
+        </div>
+        <div class="table-context-menu-item" data-list-style="roman-lower:1">
+            <span>i, ii, iii</span>
+        </div>
+        <div class="table-context-menu-item" data-list-style="alpha:1">
+            <span>A, B, C</span>
+        </div>
+        <div class="table-context-menu-item" data-list-style="alpha-lower:1">
+            <span>a, b, c</span>
+        </div>
+        <div class="table-context-menu-item" data-list-style="bullet:1">
+            <span>&#8226; Bullet</span>
+        </div>
+        <div class="table-context-menu-item" data-list-style="check:1">
+            <span>&#9744; Checklist</span>
+        </div>
+    </div>
+
+    <!-- Properties Modal -->
+    <div id="properties-modal" class="properties-modal">
+        <div class="properties-modal-content">
+            <div class="properties-modal-header">
+                <span id="modal-title">Properties</span>
+                <button onclick="closeModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+            <div class="properties-modal-body" id="modal-body"></div>
+            <div class="properties-modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="modal-apply">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Properties Modal -->
+    <div id="image-properties-modal" class="properties-modal">
+        <div class="properties-modal-content" style="min-width: 500px;">
+            <div class="properties-modal-header">
+                <span>Image Properties</span>
+                <button onclick="closeImageModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">&times;</button>
+            </div>
+            <div class="properties-modal-body">
+                <div class="form-group">
+                    <label>Alternative Text</label>
+                    <input type="text" id="image-alt" placeholder="Describe this image">
+                </div>
+                <div class="form-row-inline">
+                    <div class="form-group">
+                        <label>Width (px)</label>
+                        <input type="number" id="image-width" placeholder="Auto">
+                    </div>
+                    <div class="form-group">
+                        <label>Height (px)</label>
+                        <input type="number" id="image-height" placeholder="Auto">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="image-keep-ratio" checked> Keep aspect ratio</label>
+                </div>
+                <div class="form-group">
+                    <label>Alignment</label>
+                    <select id="image-align">
+                        <option value="">Inline</option>
+                        <option value="left">Float Left</option>
+                        <option value="right">Float Right</option>
+                        <option value="center">Center (Block)</option>
+                    </select>
+                </div>
+                <div class="form-row-inline">
+                    <div class="form-group">
+                        <label>Border Width (px)</label>
+                        <input type="number" id="image-border-width" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Border Style</label>
+                        <select id="image-border-style">
+                            <option value="none">None</option>
+                            <option value="solid">Solid</option>
+                            <option value="dashed">Dashed</option>
+                            <option value="dotted">Dotted</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Border Color</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="color" id="image-border-color-picker" value="#000000" style="width: 60px; height: 38px; padding: 2px;">
+                        <input type="text" id="image-border-color" value="#000000" placeholder="#000000" style="flex: 1;">
+                    </div>
+                </div>
+                <div class="form-row-inline">
+                    <div class="form-group">
+                        <label>Margin Top (px)</label>
+                        <input type="number" id="image-margin-top" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Margin Bottom (px)</label>
+                        <input type="number" id="image-margin-bottom" placeholder="0" min="0">
+                    </div>
+                </div>
+                <div class="form-row-inline">
+                    <div class="form-group">
+                        <label>Margin Left (px)</label>
+                        <input type="number" id="image-margin-left" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Margin Right (px)</label>
+                        <input type="number" id="image-margin-right" placeholder="0" min="0">
+                    </div>
+                </div>
+            </div>
+            <div class="properties-modal-footer">
+                <button class="btn btn-cancel" onclick="closeImageModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="applyImageProperties()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quill JS (local custom build) -->
+    <script src="/packages/quill/dist/dist/quill.js"></script>
+
+    <script>
+        // Dark mode toggle
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark');
+        }
+
+        // Register custom fonts
+        const Font = Quill.import('formats/font');
+        Font.whitelist = ['arial', 'times-new-roman', 'courier', 'georgia', 'verdana', 'calibri', 'tahoma', 'trebuchet', 'bookman', 'comic-sans'];
+        Quill.register(Font, true);
+
+        // Register custom font sizes
+        const Size = Quill.import('attributors/style/size');
+        Size.whitelist = ['8pt', '9pt', '10pt', '11pt', '12pt', '14pt', '16pt', '18pt', '20pt', '22pt', '24pt', '26pt', '28pt', '36pt', '48pt', '72pt'];
+        Quill.register(Size, true);
+
+        // Custom icons - Heroicons
+        const icons = Quill.import('ui/icons');
+
+        // Clipboard icons
+        icons['copy'] = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3.5A1.5 1.5 0 018.5 2h3.879a1.5 1.5 0 011.06.44l3.122 3.12A1.5 1.5 0 0117 6.622V12.5a1.5 1.5 0 01-1.5 1.5h-1v-3.379a3 3 0 00-.879-2.121L10.5 5.379A3 3 0 008.379 4.5H7v-1z"/><path d="M4.5 6A1.5 1.5 0 003 7.5v9A1.5 1.5 0 004.5 18h7a1.5 1.5 0 001.5-1.5v-5.879a1.5 1.5 0 00-.44-1.06L9.44 6.439A1.5 1.5 0 008.378 6H4.5z"/></svg>';
+        icons['cut'] = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.5 3A2.5 2.5 0 003 5.5c0 .862.436 1.622 1.098 2.073L6.57 10l-2.473 2.427A2.5 2.5 0 105.5 17c.862 0 1.622-.436 2.073-1.098L10 13.43l2.427 2.473A2.5 2.5 0 1017 14.5c0-.862-.436-1.622-1.098-2.073L13.43 10l2.473-2.427A2.5 2.5 0 1014.5 3c-.862 0-1.622.436-2.073 1.098L10 6.57 7.573 4.098A2.5 2.5 0 005.5 3zM5 5.5a.5.5 0 111 0 .5.5 0 01-1 0zm-.5 9a.5.5 0 100 1 .5.5 0 000-1zM14 5.5a.5.5 0 111 0 .5.5 0 01-1 0zm.5 9a.5.5 0 101 0 .5.5 0 00-1 0zM8.5 10a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" clip-rule="evenodd"/></svg>';
+        icons['paste'] = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M13.887 3.182c.396.037.79.08 1.183.128C16.194 3.45 17 4.414 17 5.517V16.75A2.25 2.25 0 0114.75 19h-9.5A2.25 2.25 0 013 16.75V5.517c0-1.103.806-2.068 1.93-2.207.393-.048.787-.09 1.183-.128A3.001 3.001 0 019 1h2c1.373 0 2.531.923 2.887 2.182zM7.5 4A1.5 1.5 0 019 2.5h2A1.5 1.5 0 0112.5 4v.5h-5V4z" clip-rule="evenodd"/></svg>';
+
+        // Table icon
+        icons['table'] = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M.99 5.24A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25l.01 9.5A2.25 2.25 0 0116.76 17H3.26A2.267 2.267 0 011 14.74l-.01-9.5zm8.26 9.52v-.625a.75.75 0 00-.75-.75H3.25a.75.75 0 00-.75.75v.615c0 .414.336.75.75.75h5.373a.75.75 0 00.627-.74zm1.5 0a.75.75 0 00.627.74h5.373a.75.75 0 00.75-.75v-.615a.75.75 0 00-.75-.75H11.5a.75.75 0 00-.75.75v.625zm6.75-3.63v-.625a.75.75 0 00-.75-.75H11.5a.75.75 0 00-.75.75v.625c0 .414.336.75.75.75h5.25a.75.75 0 00.75-.75zm-8.25 0v-.625a.75.75 0 00-.75-.75H3.25a.75.75 0 00-.75.75v.625c0 .414.336.75.75.75H8.5a.75.75 0 00.75-.75zM17.5 7.5v-.625a.75.75 0 00-.75-.75H11.5a.75.75 0 00-.75.75V7.5c0 .414.336.75.75.75h5.25a.75.75 0 00.75-.75zm-8.25 0v-.625a.75.75 0 00-.75-.75H3.25a.75.75 0 00-.75.75V7.5c0 .414.336.75.75.75H8.5a.75.75 0 00.75-.75z" clip-rule="evenodd" /></svg>';
+
+        // Page break icon
+        icons['pagebreak'] = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M2 4.25A.75.75 0 012.75 3.5h3.5a.75.75 0 010 1.5h-3.5A.75.75 0 012 4.25zM8 4.25A.75.75 0 018.75 3.5h2.5a.75.75 0 010 1.5h-2.5A.75.75 0 018 4.25zM13.75 3.5a.75.75 0 000 1.5h3.5a.75.75 0 000-1.5h-3.5zM2 10.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.25zM2 15.75a.75.75 0 01.75-.75h3.5a.75.75 0 010 1.5h-3.5a.75.75 0 01-.75-.75zM8 15.75a.75.75 0 01.75-.75h2.5a.75.75 0 010 1.5h-2.5a.75.75 0 01-.75-.75zM13.75 15a.75.75 0 000 1.5h3.5a.75.75 0 000-1.5h-3.5z"/></svg>';
+
+        // Full toolbar configuration
+        const toolbarOptions = [
+            // Clipboard section
+            ['copy', 'cut', 'paste'],
+
+            // Formatting section
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            [{ 'font': ['arial', 'times-new-roman', 'courier', 'georgia', 'verdana', 'calibri', 'tahoma', 'trebuchet', 'bookman', 'comic-sans'] }],
+            [{ 'size': ['8pt', '9pt', '10pt', '11pt', '12pt', '14pt', '16pt', '18pt', '20pt', '22pt', '24pt', '26pt', '28pt', '36pt', '48pt', '72pt'] }],
+
+            // Text styling section
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'script': 'sub'}, { 'script': 'super' }],
+            [{ 'color': [] }, { 'background': [] }],
+
+            // Alignment section
+            [{ 'align': [] }],
+
+            // Lists and indents section
+            [{ 'list': ['decimal:1', 'roman:1', 'roman-lower:1', 'alpha:1', 'alpha-lower:1', 'bullet:1', 'check:1'] }],
+            [{ 'indent': '-1'}, { 'indent': '+1' }],
+
+            // Blocks section
+            ['blockquote', 'code-block'],
+
+            // Insert section
+            ['link', 'image', 'video', 'table', 'pagebreak'],
+
+            // Clear formatting
+            ['clean']
+        ];
+
+        // Image handler for upload
+        function imageHandler() {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/*');
+            input.click();
+
+            input.onchange = () => {
+                const file = input.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const range = quill.getSelection(true);
+                        quill.insertEmbed(range.index, 'image', e.target.result);
+                        quill.setSelection(range.index + 1);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+        }
+
+        // Page break handler
+        function pageBreakHandler() {
+            const range = this.quill.getSelection(true);
+            const pageBreakHTML = '<div class="ql-page-break" contenteditable="false" data-page-break="true"><div></div></div><p><br></p>';
+            this.quill.clipboard.dangerouslyPasteHTML(range.index, pageBreakHTML);
+            this.quill.setSelection(range.index + 1);
+        }
+
+        // Table handler
+        function tableHandler() {
+            const tableButton = document.querySelector('.ql-table');
+            const selector = document.getElementById('table-size-selector');
+            if (selector && tableButton) {
+                const rect = tableButton.getBoundingClientRect();
+                selector.style.top = (rect.bottom + 5) + 'px';
+                selector.style.left = rect.left + 'px';
+                selector.classList.add('active');
+            }
+        }
+
+        // Initialize Quill editor
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: {
+                    container: toolbarOptions,
+                    handlers: {
+                        copy: function() {
+                            const selection = this.quill.getSelection();
+                            if (selection) {
+                                const text = this.quill.getText(selection.index, selection.length);
+                                navigator.clipboard.writeText(text);
+                            }
+                        },
+                        cut: function() {
+                            const selection = this.quill.getSelection();
+                            if (selection) {
+                                const text = this.quill.getText(selection.index, selection.length);
+                                navigator.clipboard.writeText(text).then(() => {
+                                    this.quill.deleteText(selection.index, selection.length);
+                                });
+                            }
+                        },
+                        paste: function() {
+                            navigator.clipboard.readText().then(text => {
+                                const selection = this.quill.getSelection() || { index: 0 };
+                                this.quill.insertText(selection.index, text);
+                            });
+                        },
+                        image: imageHandler,
+                        pagebreak: pageBreakHandler,
+                        table: tableHandler,
+                        list: function(value) {
+                            const range = this.quill.getSelection();
+                            if (range) {
+                                if (value) {
+                                    this.quill.formatLine(range.index, range.length || 1, 'list', value);
+                                } else {
+                                    this.quill.formatLine(range.index, range.length || 1, 'list', false);
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            placeholder: 'Start typing your document...'
+        });
+
+        // Move toolbar to container
+        setTimeout(() => {
+            const toolbar = document.querySelector('.ql-toolbar');
+            const toolbarContainer = document.getElementById('toolbar-container');
+            if (toolbar && toolbarContainer) {
+                toolbarContainer.appendChild(toolbar);
+            }
+
+            // Customize picker labels
+            customizePickerLabels();
+        }, 100);
+
+        // Customize picker labels
+        function customizePickerLabels() {
+            const fontPicker = document.querySelector('.ql-font');
+            if (fontPicker) {
+                const fontLabels = {
+                    'arial': 'Arial',
+                    'times-new-roman': 'Times New Roman',
+                    'courier': 'Courier New',
+                    'georgia': 'Georgia',
+                    'verdana': 'Verdana',
+                    'calibri': 'Calibri',
+                    'tahoma': 'Tahoma',
+                    'trebuchet': 'Trebuchet MS',
+                    'bookman': 'Bookman Old Style',
+                    'comic-sans': 'Comic Sans MS'
+                };
+
+                fontPicker.querySelectorAll('.ql-picker-item').forEach(item => {
+                    const value = item.getAttribute('data-value');
+                    if (value && fontLabels[value]) {
+                        item.setAttribute('data-label', fontLabels[value]);
+                    }
+                });
+            }
+
+            const listPicker = document.querySelector('.ql-list');
+            if (listPicker) {
+                const listLabels = {
+                    'decimal:1': '1, 2, 3',
+                    'roman:1': 'I, II, III',
+                    'roman-lower:1': 'i, ii, iii',
+                    'alpha:1': 'A, B, C',
+                    'alpha-lower:1': 'a, b, c',
+                    'bullet:1': '\u2022 Bullet',
+                    'check:1': '\u2610 Checklist'
+                };
+
+                listPicker.querySelectorAll('.ql-picker-item').forEach(item => {
+                    const value = item.getAttribute('data-value');
+                    if (value && listLabels[value]) {
+                        item.setAttribute('data-label', listLabels[value]);
+                    }
+                });
+
+                const listLabel = listPicker.querySelector('.ql-picker-label');
+                if (listLabel && !listLabel.getAttribute('data-value')) {
+                    listLabel.setAttribute('data-label', 'List');
+                }
+            }
+        }
+
+        // Sync content to hidden textarea
+        quill.on('text-change', function() {
+            document.getElementById('content').value = quill.root.innerHTML;
+        });
+
+        // Store quill instance globally
+        window.quillInstance = quill;
+
+        // ==================== TABLE SIZE SELECTOR ====================
+        const tableGrid = document.getElementById('table-grid');
+        const tableSizeLabel = document.getElementById('table-size-label');
+        const tableSizeSelector = document.getElementById('table-size-selector');
+
+        // Create grid cells (10x10)
+        for (let row = 0; row < 10; row++) {
+            for (let col = 0; col < 10; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'table-grid-cell';
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+
+                cell.addEventListener('mouseenter', function() {
+                    const r = parseInt(this.dataset.row);
+                    const c = parseInt(this.dataset.col);
+
+                    tableGrid.querySelectorAll('.table-grid-cell').forEach(gc => {
+                        const gr = parseInt(gc.dataset.row);
+                        const gCol = parseInt(gc.dataset.col);
+                        if (gr <= r && gCol <= c) {
+                            gc.classList.add('highlight');
+                        } else {
+                            gc.classList.remove('highlight');
+                        }
+                    });
+
+                    tableSizeLabel.textContent = (r + 1) + ' x ' + (c + 1);
+                });
+
+                cell.addEventListener('click', function() {
+                    const rows = parseInt(this.dataset.row) + 1;
+                    const cols = parseInt(this.dataset.col) + 1;
+
+                    insertTable(rows, cols);
+
+                    tableSizeSelector.classList.remove('active');
+                    tableGrid.querySelectorAll('.table-grid-cell').forEach(gc => gc.classList.remove('highlight'));
+                    tableSizeLabel.textContent = 'Select table size';
+                });
+
+                tableGrid.appendChild(cell);
+            }
+        }
+
+        // Close table size selector when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!tableSizeSelector.contains(e.target) && !e.target.closest('.ql-table')) {
+                tableSizeSelector.classList.remove('active');
+            }
+        });
+
+        // Insert table function
+        function insertTable(rows, cols) {
+            let tableHTML = '<table style="border-collapse: collapse; width: 100%; margin: 10px 0;"><tbody>';
+
+            for (let r = 0; r < rows; r++) {
+                tableHTML += '<tr>';
+                for (let c = 0; c < cols; c++) {
+                    tableHTML += '<td style="border: 1px solid #ddd; padding: 8px;"><br></td>';
+                }
+                tableHTML += '</tr>';
+            }
+
+            tableHTML += '</tbody></table><p><br></p>';
+
+            const range = quill.getSelection(true);
+            quill.clipboard.dangerouslyPasteHTML(range.index, tableHTML);
+            quill.setSelection(range.index + 2);
+        }
+
+        // ==================== TABLE CONTEXT MENU ====================
+        const tableContextMenu = document.getElementById('table-context-menu');
+        let currentTableCell = null;
+
+        // Show context menu on right-click in table
+        document.getElementById('editor').addEventListener('contextmenu', function(e) {
+            let target = e.target;
+            while (target && target !== quill.root) {
+                if (target.tagName === 'TD' || target.tagName === 'TH') {
+                    e.preventDefault();
+                    currentTableCell = target;
+
+                    tableContextMenu.style.display = 'block';
+                    tableContextMenu.style.left = e.pageX + 'px';
+                    tableContextMenu.style.top = e.pageY + 'px';
+                    return;
+                }
+                target = target.parentNode;
+            }
+        });
+
+        // Hide context menus on click outside
+        document.addEventListener('click', function(e) {
+            if (!tableContextMenu.contains(e.target)) {
+                tableContextMenu.style.display = 'none';
+            }
+            if (!listContextMenu.contains(e.target) && !listStyleSubmenu.contains(e.target)) {
+                listContextMenu.style.display = 'none';
+                listStyleSubmenu.style.display = 'none';
+            }
+        });
+
+        // Handle table context menu actions
+        tableContextMenu.addEventListener('click', function(e) {
+            const item = e.target.closest('.table-context-menu-item');
+            if (!item || !currentTableCell) return;
+
+            const action = item.getAttribute('data-action');
+            const row = currentTableCell.parentNode;
+            const table = currentTableCell.closest('table');
+            const cellIndex = Array.from(row.children).indexOf(currentTableCell);
+
+            switch(action) {
+                case 'insert-row-above':
+                    const newRowAbove = document.createElement('tr');
+                    Array.from(row.children).forEach(cell => {
+                        const newCell = document.createElement(cell.tagName.toLowerCase());
+                        newCell.style.cssText = cell.style.cssText;
+                        newCell.innerHTML = '<br>';
+                        newRowAbove.appendChild(newCell);
+                    });
+                    row.parentNode.insertBefore(newRowAbove, row);
+                    break;
+
+                case 'insert-row-below':
+                    const newRowBelow = document.createElement('tr');
+                    Array.from(row.children).forEach(cell => {
+                        const newCell = document.createElement(cell.tagName.toLowerCase());
+                        newCell.style.cssText = cell.style.cssText;
+                        newCell.innerHTML = '<br>';
+                        newRowBelow.appendChild(newCell);
+                    });
+                    row.parentNode.insertBefore(newRowBelow, row.nextSibling);
+                    break;
+
+                case 'delete-row':
+                    if (row.parentNode.children.length <= 1) {
+                        alert('Cannot delete the last row');
+                    } else {
+                        row.remove();
+                    }
+                    break;
+
+                case 'insert-column-left':
+                    table.querySelectorAll('tr').forEach(tr => {
+                        const refCell = tr.children[cellIndex];
+                        if (refCell) {
+                            const newCell = document.createElement(refCell.tagName.toLowerCase());
+                            newCell.style.border = '1px solid #ddd';
+                            newCell.style.padding = '8px';
+                            newCell.innerHTML = '<br>';
+                            tr.insertBefore(newCell, refCell);
+                        }
+                    });
+                    break;
+
+                case 'insert-column-right':
+                    table.querySelectorAll('tr').forEach(tr => {
+                        const refCell = tr.children[cellIndex];
+                        if (refCell) {
+                            const newCell = document.createElement(refCell.tagName.toLowerCase());
+                            newCell.style.border = '1px solid #ddd';
+                            newCell.style.padding = '8px';
+                            newCell.innerHTML = '<br>';
+                            if (refCell.nextSibling) {
+                                tr.insertBefore(newCell, refCell.nextSibling);
+                            } else {
+                                tr.appendChild(newCell);
+                            }
+                        }
+                    });
+                    break;
+
+                case 'delete-column':
+                    if (row.children.length <= 1) {
+                        alert('Cannot delete the last column');
+                    } else {
+                        table.querySelectorAll('tr').forEach(tr => {
+                            if (tr.children[cellIndex]) {
+                                tr.children[cellIndex].remove();
+                            }
+                        });
+                    }
+                    break;
+
+                case 'cell-properties':
+                    showCellProperties(currentTableCell);
+                    break;
+
+                case 'table-properties':
+                    showTableProperties(table);
+                    break;
+
+                case 'delete-table':
+                    if (confirm('Delete this table?')) {
+                        table.remove();
+                    }
+                    break;
+            }
+
+            quill.update();
+            tableContextMenu.style.display = 'none';
+        });
+
+        // ==================== TABLE RESIZE ====================
+        let resizeState = {
+            isResizing: false,
+            type: null,
+            target: null,
+            startX: 0,
+            startY: 0,
+            startWidth: 0,
+            startHeight: 0,
+            table: null,
+            columnIndex: -1
+        };
+
+        let lastHighlightedCell = null;
+
+        document.getElementById('editor').addEventListener('mousemove', function(e) {
+            if (resizeState.isResizing) return;
+
+            const cell = e.target.closest('td, th');
+
+            if (!cell) {
+                if (lastHighlightedCell) {
+                    lastHighlightedCell.classList.remove('resize-col-active', 'resize-row-active');
+                    lastHighlightedCell = null;
+                }
+                document.body.style.cursor = '';
+                return;
+            }
+
+            const rect = cell.getBoundingClientRect();
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+
+            const nearRightBorder = mouseX > rect.right - 10 && mouseX <= rect.right + 2;
+            const nearBottomBorder = mouseY > rect.bottom - 10 && mouseY <= rect.bottom + 2;
+
+            if (lastHighlightedCell && lastHighlightedCell !== cell) {
+                lastHighlightedCell.classList.remove('resize-col-active', 'resize-row-active');
+            }
+
+            if (nearRightBorder) {
+                document.body.style.cursor = 'col-resize';
+                cell.classList.remove('resize-row-active');
+                cell.classList.add('resize-col-active');
+                lastHighlightedCell = cell;
+            } else if (nearBottomBorder) {
+                document.body.style.cursor = 'row-resize';
+                cell.classList.remove('resize-col-active');
+                cell.classList.add('resize-row-active');
+                lastHighlightedCell = cell;
+            } else {
+                document.body.style.cursor = '';
+                cell.classList.remove('resize-col-active', 'resize-row-active');
+                if (lastHighlightedCell === cell) {
+                    lastHighlightedCell = null;
+                }
+            }
+        });
+
+        document.getElementById('editor').addEventListener('mousedown', function(e) {
+            const cell = e.target.closest('td, th');
+            if (!cell) return;
+
+            const rect = cell.getBoundingClientRect();
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+
+            const nearRightBorder = mouseX > rect.right - 10 && mouseX <= rect.right + 2;
+            const nearBottomBorder = mouseY > rect.bottom - 10 && mouseY <= rect.bottom + 2;
+
+            if (nearRightBorder) {
+                e.preventDefault();
+                const table = cell.closest('table');
+                const row = cell.parentNode;
+                const columnIndex = Array.from(row.children).indexOf(cell);
+
+                resizeState = {
+                    isResizing: true,
+                    type: 'column',
+                    target: cell,
+                    startX: mouseX,
+                    startWidth: cell.offsetWidth,
+                    table: table,
+                    columnIndex: columnIndex
+                };
+
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+            } else if (nearBottomBorder) {
+                e.preventDefault();
+                const row = cell.parentNode;
+
+                resizeState = {
+                    isResizing: true,
+                    type: 'row',
+                    target: row,
+                    startY: mouseY,
+                    startHeight: row.offsetHeight
+                };
+
+                document.body.style.cursor = 'row-resize';
+                document.body.style.userSelect = 'none';
+            }
+        }, true);
+
+        document.addEventListener('mousemove', function(e) {
+            if (!resizeState.isResizing) return;
+
+            e.preventDefault();
+
+            if (resizeState.type === 'column') {
+                document.body.style.cursor = 'col-resize';
+                const diff = e.clientX - resizeState.startX;
+                const newWidth = Math.max(30, resizeState.startWidth + diff);
+
+                resizeState.table.querySelectorAll('tr').forEach(tr => {
+                    const cell = tr.children[resizeState.columnIndex];
+                    if (cell) {
+                        cell.style.width = newWidth + 'px';
+                        cell.style.minWidth = newWidth + 'px';
+                        cell.style.maxWidth = newWidth + 'px';
+                    }
+                });
+            } else if (resizeState.type === 'row') {
+                document.body.style.cursor = 'row-resize';
+                const diff = e.clientY - resizeState.startY;
+                const newHeight = Math.max(20, resizeState.startHeight + diff);
+                resizeState.target.style.height = newHeight + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (resizeState.isResizing) {
+                quill.update();
+                resizeState = { isResizing: false, type: null, target: null, startX: 0, startY: 0, startWidth: 0, startHeight: 0, table: null, columnIndex: -1 };
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        });
+
+        // ==================== PROPERTIES MODALS ====================
+        const propertiesModal = document.getElementById('properties-modal');
+        let modalApplyCallback = null;
+
+        function closeModal() {
+            propertiesModal.classList.remove('active');
+        }
+
+        document.getElementById('modal-apply').addEventListener('click', function() {
+            if (modalApplyCallback) {
+                modalApplyCallback();
+            }
+        });
+
+        propertiesModal.addEventListener('click', function(e) {
+            if (e.target === propertiesModal) {
+                closeModal();
+            }
+        });
+
+        function showCellProperties(cell) {
+            document.getElementById('modal-title').textContent = 'Cell Properties';
+            document.getElementById('modal-body').innerHTML = `
+                <div class="form-group">
+                    <label>Width</label>
+                    <input type="text" id="cell-width" placeholder="e.g., 100px, 20%, or leave empty for auto" value="${cell.style.width || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Background Color</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="color" id="cell-bgcolor" value="${getHexColor(cell.style.backgroundColor)}" style="width: 80px; padding: 4px;">
+                        <input type="text" id="cell-bgcolor-text" placeholder="transparent, #fff" value="${cell.style.backgroundColor || ''}" style="flex: 1;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Padding</label>
+                    <input type="text" id="cell-padding" placeholder="e.g., 8px" value="${cell.style.padding || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Text Alignment</label>
+                    <select id="cell-align">
+                        <option value="">Default</option>
+                        <option value="left" ${cell.style.textAlign === 'left' ? 'selected' : ''}>Left</option>
+                        <option value="center" ${cell.style.textAlign === 'center' ? 'selected' : ''}>Center</option>
+                        <option value="right" ${cell.style.textAlign === 'right' ? 'selected' : ''}>Right</option>
+                    </select>
+                </div>
+            `;
+
+            document.getElementById('cell-bgcolor').addEventListener('input', function(e) {
+                document.getElementById('cell-bgcolor-text').value = e.target.value;
+            });
+
+            modalApplyCallback = function() {
+                cell.style.width = document.getElementById('cell-width').value;
+                cell.style.backgroundColor = document.getElementById('cell-bgcolor-text').value;
+                cell.style.padding = document.getElementById('cell-padding').value;
+                cell.style.textAlign = document.getElementById('cell-align').value;
+                quill.update();
+                closeModal();
+            };
+
+            propertiesModal.classList.add('active');
+        }
+
+        function showTableProperties(table) {
+            document.getElementById('modal-title').textContent = 'Table Properties';
+            document.getElementById('modal-body').innerHTML = `
+                <div class="form-group">
+                    <label>Width</label>
+                    <input type="text" id="table-width" placeholder="e.g., 100%, 800px" value="${table.style.width || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Border Width</label>
+                    <input type="text" id="table-border-width" placeholder="e.g., 1px" value="${table.style.borderWidth || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Border Color</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="color" id="table-border-color" value="#dddddd" style="width: 80px; padding: 4px;">
+                        <input type="text" id="table-border-color-text" placeholder="#ddd" value="" style="flex: 1;">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Alignment</label>
+                    <select id="table-align">
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                    </select>
+                </div>
+            `;
+
+            modalApplyCallback = function() {
+                const width = document.getElementById('table-width').value;
+                const borderWidth = document.getElementById('table-border-width').value;
+                const borderColor = document.getElementById('table-border-color-text').value || document.getElementById('table-border-color').value;
+                const align = document.getElementById('table-align').value;
+
+                if (width) table.style.width = width;
+
+                if (borderWidth) {
+                    table.querySelectorAll('td, th').forEach(cell => {
+                        cell.style.border = borderWidth + ' solid ' + (borderColor || '#ddd');
+                    });
+                }
+
+                if (align === 'center') {
+                    table.style.marginLeft = 'auto';
+                    table.style.marginRight = 'auto';
+                } else if (align === 'right') {
+                    table.style.marginLeft = 'auto';
+                    table.style.marginRight = '0';
+                } else {
+                    table.style.marginLeft = '0';
+                    table.style.marginRight = 'auto';
+                }
+
+                quill.update();
+                closeModal();
+            };
+
+            propertiesModal.classList.add('active');
+        }
+
+        function getHexColor(color) {
+            if (!color || color === 'transparent') return '#ffffff';
+            if (color.startsWith('#')) return color;
+            const temp = document.createElement('div');
+            temp.style.color = color;
+            document.body.appendChild(temp);
+            const computed = window.getComputedStyle(temp).color;
+            document.body.removeChild(temp);
+            const rgb = computed.match(/\d+/g);
+            if (rgb) {
+                return '#' + rgb.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+            }
+            return '#ffffff';
+        }
+
+        // ==================== LIST CONTEXT MENU ====================
+        const listContextMenu = document.getElementById('list-context-menu');
+        const listStyleSubmenu = document.getElementById('list-style-submenu');
+        let currentListItem = null;
+        let savedListSelection = null;
+
+        document.getElementById('editor').addEventListener('contextmenu', function(e) {
+            const selection = quill.getSelection();
+            if (selection) {
+                const [block, offset] = quill.getLine(selection.index);
+                if (block && block.domNode && block.domNode.tagName === 'LI') {
+                    if (offset === 0) {
+                        e.preventDefault();
+                        currentListItem = block;
+                        savedListSelection = selection;
+
+                        listContextMenu.style.display = 'block';
+                        listContextMenu.style.left = e.pageX + 'px';
+                        listContextMenu.style.top = e.pageY + 'px';
+                        return;
+                    }
+                }
+            }
+        });
+
+        listContextMenu.addEventListener('click', function(e) {
+            const item = e.target.closest('.table-context-menu-item');
+            if (!item || !currentListItem) return;
+
+            const action = item.getAttribute('data-action');
+
+            if (action === 'change-list-style') {
+                const rect = listContextMenu.getBoundingClientRect();
+                listStyleSubmenu.style.display = 'block';
+                listStyleSubmenu.style.left = (rect.right + 5) + 'px';
+                listStyleSubmenu.style.top = rect.top + 'px';
+            } else if (action === 'reset-numbering') {
+                currentListItem.domNode.setAttribute('value', '1');
+                quill.update();
+                listContextMenu.style.display = 'none';
+            }
+        });
+
+        document.getElementById('list-start-number').addEventListener('change', function(e) {
+            if (!currentListItem) return;
+            const startNumber = parseInt(e.target.value) || 1;
+            currentListItem.domNode.setAttribute('value', startNumber);
+            quill.update();
+            listContextMenu.style.display = 'none';
+        });
+
+        listStyleSubmenu.addEventListener('click', function(e) {
+            const item = e.target.closest('.table-context-menu-item');
+            if (!item || !currentListItem || !savedListSelection) return;
+
+            const listStyle = item.getAttribute('data-list-style');
+            if (listStyle) {
+                quill.formatLine(savedListSelection.index, 1, 'list', listStyle);
+                quill.update();
+            }
+
+            listContextMenu.style.display = 'none';
+            listStyleSubmenu.style.display = 'none';
+        });
+
+        // ==================== IMAGE EDITING ====================
+        let selectedImage = null;
+        let imageAspectRatio = 1;
+
+        quill.root.addEventListener('click', function(e) {
+            if (e.target.tagName === 'IMG') {
+                if (selectedImage && selectedImage !== e.target) {
+                    selectedImage.classList.remove('selected-image');
+                }
+                selectedImage = e.target;
+                selectedImage.classList.add('selected-image');
+
+                if (selectedImage.naturalWidth && selectedImage.naturalHeight) {
+                    imageAspectRatio = selectedImage.naturalWidth / selectedImage.naturalHeight;
+                }
+            } else {
+                if (selectedImage) {
+                    selectedImage.classList.remove('selected-image');
+                    selectedImage = null;
+                }
+            }
+        });
+
+        quill.root.addEventListener('dblclick', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+                selectedImage = e.target;
+                showImageProperties(e.target);
+            }
+        });
+
+        function showImageProperties(img) {
+            const modal = document.getElementById('image-properties-modal');
+
+            document.getElementById('image-alt').value = img.alt || '';
+            document.getElementById('image-width').value = img.width || '';
+            document.getElementById('image-height').value = img.height || '';
+            document.getElementById('image-border-width').value = img.getAttribute('data-border-width') || '';
+            document.getElementById('image-border-style').value = img.style.borderStyle || 'none';
+            document.getElementById('image-border-color').value = img.style.borderColor || '#000000';
+            document.getElementById('image-margin-top').value = img.getAttribute('data-margin-top') || '';
+            document.getElementById('image-margin-bottom').value = img.getAttribute('data-margin-bottom') || '';
+            document.getElementById('image-margin-left').value = img.getAttribute('data-margin-left') || '';
+            document.getElementById('image-margin-right').value = img.getAttribute('data-margin-right') || '';
+
+            const float = img.style.float || '';
+            const display = img.style.display || '';
+            let alignment = '';
+            if (float === 'left') alignment = 'left';
+            else if (float === 'right') alignment = 'right';
+            else if (display === 'block') alignment = 'center';
+            document.getElementById('image-align').value = alignment;
+
+            if (img.naturalWidth && img.naturalHeight) {
+                imageAspectRatio = img.naturalWidth / img.naturalHeight;
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeImageModal() {
+            document.getElementById('image-properties-modal').classList.remove('active');
+        }
+
+        // Border color picker sync
+        document.getElementById('image-border-color-picker').addEventListener('input', function() {
+            document.getElementById('image-border-color').value = this.value;
+        });
+
+        document.getElementById('image-border-color').addEventListener('input', function() {
+            if (this.value.startsWith('#')) {
+                document.getElementById('image-border-color-picker').value = this.value;
+            }
+        });
+
+        // Aspect ratio handling
+        document.getElementById('image-width').addEventListener('input', function() {
+            if (document.getElementById('image-keep-ratio').checked && this.value) {
+                document.getElementById('image-height').value = Math.round(this.value / imageAspectRatio);
+            }
+        });
+
+        document.getElementById('image-height').addEventListener('input', function() {
+            if (document.getElementById('image-keep-ratio').checked && this.value) {
+                document.getElementById('image-width').value = Math.round(this.value * imageAspectRatio);
+            }
+        });
+
+        function applyImageProperties() {
+            if (!selectedImage) return;
+
+            selectedImage.alt = document.getElementById('image-alt').value;
+
+            const width = document.getElementById('image-width').value;
+            const height = document.getElementById('image-height').value;
+            if (width) {
+                selectedImage.width = width;
+                selectedImage.setAttribute('width', width);
+            }
+            if (height) {
+                selectedImage.height = height;
+                selectedImage.setAttribute('height', height);
+            }
+
+            const borderWidth = document.getElementById('image-border-width').value;
+            const borderStyle = document.getElementById('image-border-style').value;
+            const borderColor = document.getElementById('image-border-color').value;
+
+            if (borderWidth && borderStyle !== 'none') {
+                selectedImage.style.border = `${borderWidth}px ${borderStyle} ${borderColor}`;
+            } else {
+                selectedImage.style.border = '';
+            }
+
+            const marginTop = document.getElementById('image-margin-top').value;
+            const marginBottom = document.getElementById('image-margin-bottom').value;
+            const marginLeft = document.getElementById('image-margin-left').value;
+            const marginRight = document.getElementById('image-margin-right').value;
+
+            selectedImage.style.margin = [
+                marginTop ? marginTop + 'px' : '0',
+                marginRight ? marginRight + 'px' : '0',
+                marginBottom ? marginBottom + 'px' : '0',
+                marginLeft ? marginLeft + 'px' : '0'
+            ].join(' ');
+
+            const alignment = document.getElementById('image-align').value;
+            selectedImage.style.float = '';
+            selectedImage.style.display = '';
+            selectedImage.style.marginLeft = '';
+            selectedImage.style.marginRight = '';
+
+            if (alignment === 'left') {
+                selectedImage.style.float = 'left';
+                selectedImage.style.marginRight = '10px';
+            } else if (alignment === 'right') {
+                selectedImage.style.float = 'right';
+                selectedImage.style.marginLeft = '10px';
+            } else if (alignment === 'center') {
+                selectedImage.style.display = 'block';
+                selectedImage.style.marginLeft = 'auto';
+                selectedImage.style.marginRight = 'auto';
+            }
+
+            closeImageModal();
+        }
+
+        // ==================== RULER ====================
+        const rulerContent = document.getElementById('ruler-content');
+        if (rulerContent) {
+            const contentWidthCm = 18.46; // 21cm - 1.27cm margins on each side
+
+            // Generate tick marks and numbers
+            for (let i = 0; i <= contentWidthCm * 10; i++) {
+                const positionCm = i / 10;
+                const positionPercent = (positionCm / contentWidthCm) * 100;
+
+                const tick = document.createElement('div');
+                tick.className = 'ruler-tick';
+                tick.style.left = positionPercent + '%';
+
+                if (i % 10 === 0) {
+                    tick.classList.add('large');
+                    if (positionCm > 0 && positionCm < contentWidthCm) {
+                        const number = document.createElement('div');
+                        number.className = 'ruler-number';
+                        number.textContent = Math.round(positionCm);
+                        number.style.left = positionPercent + '%';
+                        rulerContent.appendChild(number);
+                    }
+                } else if (i % 5 === 0) {
+                    tick.classList.add('medium');
+                } else if (i % 2 === 0) {
+                    tick.classList.add('small');
+                } else {
+                    tick.classList.add('tiny');
+                }
+
+                rulerContent.appendChild(tick);
+            }
+
+            // Create indent markers
+            const leftIndentMarker = document.createElement('div');
+            leftIndentMarker.className = 'ruler-marker ruler-marker-left';
+            leftIndentMarker.id = 'left-indent';
+            leftIndentMarker.title = 'Left Indent';
+            leftIndentMarker.style.left = '0%';
+            rulerContent.appendChild(leftIndentMarker);
+
+            const firstLineMarker = document.createElement('div');
+            firstLineMarker.className = 'ruler-marker ruler-marker-first-line';
+            firstLineMarker.id = 'first-line-indent';
+            firstLineMarker.title = 'First Line Indent';
+            firstLineMarker.style.left = '0%';
+            rulerContent.appendChild(firstLineMarker);
+
+            const rightIndentMarker = document.createElement('div');
+            rightIndentMarker.className = 'ruler-marker ruler-marker-right';
+            rightIndentMarker.id = 'right-indent';
+            rightIndentMarker.title = 'Right Indent';
+            rightIndentMarker.style.left = '100%';
+            rulerContent.appendChild(rightIndentMarker);
+
+            // Draggable markers
+            let isDragging = false;
+            let currentMarker = null;
+            let startX = 0;
+            let startLeft = 0;
+
+            [leftIndentMarker, firstLineMarker, rightIndentMarker].forEach(marker => {
+                marker.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    isDragging = true;
+                    currentMarker = this;
+                    startX = e.clientX;
+                    startLeft = parseFloat(this.style.left) || 0;
+                    this.classList.add('dragging');
+                    document.body.style.cursor = 'ew-resize';
+                });
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging || !currentMarker) return;
+
+                const rulerRect = rulerContent.getBoundingClientRect();
+                const rulerWidth = rulerRect.width;
+                const deltaX = e.clientX - startX;
+                const deltaPercent = (deltaX / rulerWidth) * 100;
+                let newLeft = startLeft + deltaPercent;
+
+                newLeft = Math.max(0, Math.min(100, newLeft));
+                currentMarker.style.left = newLeft + '%';
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging && currentMarker) {
+                    currentMarker.classList.remove('dragging');
+
+                    // Apply indent to selected paragraph
+                    const selection = quill.getSelection();
+                    if (selection) {
+                        const newLeft = parseFloat(currentMarker.style.left) || 0;
+                        const indentCm = (newLeft * contentWidthCm) / 100;
+                        const indentLevel = Math.round(indentCm / 1);
+
+                        if (currentMarker === leftIndentMarker || currentMarker === firstLineMarker) {
+                            quill.formatLine(selection.index, selection.length, 'indent', indentLevel);
+                        }
+                    }
+                }
+
+                isDragging = false;
+                currentMarker = null;
+                document.body.style.cursor = '';
+            });
+        }
+
+        // ==================== HELPER FUNCTIONS ====================
+        function clearEditor() {
+            quill.setContents([]);
+        }
+
+        function getContent() {
+            const html = quill.root.innerHTML;
+            console.log('HTML Content:', html);
+            console.log('Delta Content:', quill.getContents());
+            alert('Content logged to console!\n\nHTML (first 300 chars):\n' + html.substring(0, 300) + '...');
+        }
+
+        // Form submission handler
+        document.getElementById('editor-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('content').value = quill.root.innerHTML;
+            console.log('Form submitted with content:', quill.root.innerHTML);
+            alert('Form submitted! Check console for content.');
+        });
+
+        console.log('Quill Editor initialized with all plugins!');
+        console.log('Available features:');
+        console.log('- Custom fonts (10 fonts)');
+        console.log('- Custom sizes (16 sizes)');
+        console.log('- Enhanced lists (decimal, roman, alpha, bullet, check)');
+        console.log('- Table with context menu (insert/delete row/column, properties)');
+        console.log('- Table resize (drag borders)');
+        console.log('- Image properties (size, alignment, border, margins)');
+        console.log('- Page break');
+        console.log('- Ruler with indent markers');
+        console.log('- Dark mode support');
+    </script>
+</body>
+</html>

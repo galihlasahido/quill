@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Toolbar Example</title>
+    <link rel="stylesheet" href="/packages/quill/dist/dist/quill.snow.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        h1 { margin-bottom: 10px; }
+        p.desc { color: #666; margin-bottom: 20px; }
+        .editor-container {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .editor-container h3 {
+            background: #f0f0f0;
+            margin: 0;
+            padding: 10px 15px;
+            font-size: 14px;
+        }
+        .ql-editor { min-height: 150px; }
+    </style>
+</head>
+<body>
+    <h1>Custom Toolbar Examples</h1>
+    <p class="desc">Different toolbar configurations for various use cases.</p>
+
+    <!-- Minimal Toolbar -->
+    <div class="editor-container">
+        <h3>Minimal - Just bold, italic, and link</h3>
+        <div id="editor-minimal">
+            <p>A simple editor with minimal formatting options.</p>
+        </div>
+    </div>
+
+    <!-- Text Formatting -->
+    <div class="editor-container">
+        <h3>Text Formatting - Headers, styles, colors</h3>
+        <div id="editor-formatting">
+            <p>Full text formatting capabilities.</p>
+        </div>
+    </div>
+
+    <!-- Content Editor -->
+    <div class="editor-container">
+        <h3>Content Editor - Lists, links, images</h3>
+        <div id="editor-content">
+            <p>For writing articles and blog posts.</p>
+        </div>
+    </div>
+
+    <script src="/packages/quill/dist/dist/quill.js"></script>
+    <script>
+        // Minimal toolbar
+        new Quill('#editor-minimal', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic'],
+                    ['link']
+                ]
+            }
+        });
+
+        // Text formatting toolbar
+        new Quill('#editor-formatting', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Content editor toolbar
+        new Quill('#editor-content', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['blockquote', 'code-block'],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            }
+        });
+    </script>
+</body>
+</html>

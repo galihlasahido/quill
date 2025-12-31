@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Fonts & Sizes</title>
+    <link rel="stylesheet" href="/packages/quill/dist/dist/quill.snow.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        h1 { margin-bottom: 10px; }
+        p.desc { color: #666; margin-bottom: 20px; }
+        #editor {
+            min-height: 300px;
+            background: white;
+        }
+
+        /* Custom font definitions */
+        .ql-font-arial { font-family: Arial, sans-serif; }
+        .ql-font-times { font-family: "Times New Roman", Times, serif; }
+        .ql-font-courier { font-family: "Courier New", Courier, monospace; }
+        .ql-font-georgia { font-family: Georgia, serif; }
+        .ql-font-comic { font-family: "Comic Sans MS", cursive; }
+
+        /* Show font name in picker */
+        .ql-picker.ql-font .ql-picker-item[data-value="arial"]::before { content: "Arial"; font-family: Arial; }
+        .ql-picker.ql-font .ql-picker-item[data-value="times"]::before { content: "Times New Roman"; font-family: "Times New Roman"; }
+        .ql-picker.ql-font .ql-picker-item[data-value="courier"]::before { content: "Courier New"; font-family: "Courier New"; }
+        .ql-picker.ql-font .ql-picker-item[data-value="georgia"]::before { content: "Georgia"; font-family: Georgia; }
+        .ql-picker.ql-font .ql-picker-item[data-value="comic"]::before { content: "Comic Sans"; font-family: "Comic Sans MS"; }
+
+        .ql-picker.ql-font .ql-picker-label[data-value="arial"]::before { content: "Arial"; }
+        .ql-picker.ql-font .ql-picker-label[data-value="times"]::before { content: "Times"; }
+        .ql-picker.ql-font .ql-picker-label[data-value="courier"]::before { content: "Courier"; }
+        .ql-picker.ql-font .ql-picker-label[data-value="georgia"]::before { content: "Georgia"; }
+        .ql-picker.ql-font .ql-picker-label[data-value="comic"]::before { content: "Comic"; }
+    </style>
+</head>
+<body>
+    <h1>Custom Fonts & Sizes</h1>
+    <p class="desc">Register custom fonts and font sizes with Quill.</p>
+
+    <div id="editor">
+        <p>Try different fonts and sizes!</p>
+        <p class="ql-font-georgia">This is Georgia font.</p>
+        <p class="ql-font-courier">This is Courier font.</p>
+    </div>
+
+    <script src="/packages/quill/dist/dist/quill.js"></script>
+    <script>
+        // Register custom fonts
+        const Font = Quill.import('formats/font');
+        Font.whitelist = ['arial', 'times', 'courier', 'georgia', 'comic'];
+        Quill.register(Font, true);
+
+        // Register custom sizes (using style attributor for pt sizes)
+        const Size = Quill.import('attributors/style/size');
+        Size.whitelist = ['10px', '12px', '14px', '18px', '24px', '32px'];
+        Quill.register(Size, true);
+
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'font': ['arial', 'times', 'courier', 'georgia', 'comic'] }],
+                    [{ 'size': ['10px', '12px', '14px', '18px', '24px', '32px'] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ 'color': [] }],
+                    ['clean']
+                ]
+            }
+        });
+    </script>
+</body>
+</html>

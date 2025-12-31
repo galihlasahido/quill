@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Example</title>
+    <link rel="stylesheet" href="/packages/quill/dist/dist/quill.snow.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        h1 { margin-bottom: 10px; }
+        p.desc { color: #666; margin-bottom: 20px; }
+        #editor {
+            min-height: 400px;
+            background: white;
+        }
+        .ql-editor table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .ql-editor td, .ql-editor th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        /* Table size selector */
+        .table-selector {
+            display: none;
+            position: fixed;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+        .table-selector.active { display: block; }
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 20px);
+            gap: 2px;
+        }
+        .table-grid-cell {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ccc;
+            background: white;
+            cursor: pointer;
+        }
+        .table-grid-cell.highlight {
+            background: #3b82f6;
+            border-color: #2563eb;
+        }
+        .table-size-label {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Context menu */
+        .context-menu {
+            display: none;
+            position: fixed;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            padding: 4px 0;
+            z-index: 1000;
+            min-width: 160px;
+        }
+        .context-menu-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .context-menu-item:hover { background: #f0f0f0; }
+        .context-menu-divider {
+            height: 1px;
+            background: #eee;
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Table Support</h1>
+    <p class="desc">Click the table button in toolbar to insert a table. Right-click on table cells for context menu.</p>
+
+    <div id="editor">
+        <p>Click the table button above to insert a table.</p>
+        <p><br></p>
+    </div>
+
+    <!-- Table size selector -->
+    <div id="table-selector" class="table-selector">
+        <div class="table-grid" id="table-grid"></div>
+        <div class="table-size-label" id="size-label">Select size</div>
+    </div>
+
+    <!-- Context menu -->
+    <div id="context-menu" class="context-menu">
+        <div class="context-menu-item" data-action="insert-row-above">Insert Row Above</div>
+        <div class="context-menu-item" data-action="insert-row-below">Insert Row Below</div>
+        <div class="context-menu-item" data-action="delete-row">Delete Row</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="insert-col-left">Insert Column Left</div>
+        <div class="context-menu-item" data-action="insert-col-right">Insert Column Right</div>
+        <div class="context-menu-item" data-action="delete-col">Delete Column</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="delete-table">Delete Table</div>
+    </div>
+
+    <script src="/packages/quill/dist/dist/quill.js"></script>
+    <script>
+        // Custom table icon
+        const icons = Quill.import('ui/icons');
+        icons['table'] = '<svg viewBox="0 0 18 18"><rect class="ql-stroke" height="12" width="12" x="3" y="3"></rect><line class="ql-stroke" x1="9" x2="9" y1="3" y2="15"></line><line class="ql-stroke" x1="3" x2="15" y1="9" y2="9"></line></svg>';
+
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: {
+                    container: [
+                        [{ 'header': [1, 2, false] }],
+                        ['bold', 'italic'],
+                        ['table'],
+                        ['clean']
+                    ],
+                    handlers: {
+                        table: function() {
+                            const btn = document.querySelector('.ql-table');
+                            const selector = document.getElementById('table-selector');
+                            const rect = btn.getBoundingClientRect();
+                            selector.style.top = (rect.bottom + 5) + 'px';
+                            selector.style.left = rect.left + 'px';
+                            selector.classList.add('active');
+                        }
+                    }
+                }
+            }
+        });
+
+        // Build table grid (8x8)
+        const grid = document.getElementById('table-grid');
+        const sizeLabel = document.getElementById('size-label');
+        const selector = document.getElementById('table-selector');
+
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'table-grid-cell';
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+
+                cell.addEventListener('mouseenter', function() {
+                    const row = parseInt(this.dataset.row);
+                    const col = parseInt(this.dataset.col);
+                    grid.querySelectorAll('.table-grid-cell').forEach(gc => {
+                        const gr = parseInt(gc.dataset.row);
+                        const gCol = parseInt(gc.dataset.col);
+                        gc.classList.toggle('highlight', gr <= row && gCol <= col);
+                    });
+                    sizeLabel.textContent = (row + 1) + ' x ' + (col + 1);
+                });
+
+                cell.addEventListener('click', function() {
+                    const rows = parseInt(this.dataset.row) + 1;
+                    const cols = parseInt(this.dataset.col) + 1;
+                    insertTable(rows, cols);
+                    selector.classList.remove('active');
+                });
+
+                grid.appendChild(cell);
+            }
+        }
+
+        // Close selector on outside click
+        document.addEventListener('click', function(e) {
+            if (!selector.contains(e.target) && !e.target.closest('.ql-table')) {
+                selector.classList.remove('active');
+            }
+        });
+
+        // Insert table
+        function insertTable(rows, cols) {
+            let html = '<table><tbody>';
+            for (let r = 0; r < rows; r++) {
+                html += '<tr>';
+                for (let c = 0; c < cols; c++) {
+                    html += '<td><br></td>';
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table><p><br></p>';
+
+            const range = quill.getSelection(true);
+            quill.clipboard.dangerouslyPasteHTML(range.index, html);
+        }
+
+        // Context menu
+        const contextMenu = document.getElementById('context-menu');
+        let currentCell = null;
+
+        document.getElementById('editor').addEventListener('contextmenu', function(e) {
+            let target = e.target;
+            while (target && target !== quill.root) {
+                if (target.tagName === 'TD' || target.tagName === 'TH') {
+                    e.preventDefault();
+                    currentCell = target;
+                    contextMenu.style.display = 'block';
+                    contextMenu.style.left = e.pageX + 'px';
+                    contextMenu.style.top = e.pageY + 'px';
+                    return;
+                }
+                target = target.parentNode;
+            }
+        });
+
+        document.addEventListener('click', function() {
+            contextMenu.style.display = 'none';
+        });
+
+        contextMenu.addEventListener('click', function(e) {
+            const item = e.target.closest('.context-menu-item');
+            if (!item || !currentCell) return;
+
+            const action = item.dataset.action;
+            const row = currentCell.parentNode;
+            const table = currentCell.closest('table');
+            const cellIndex = Array.from(row.children).indexOf(currentCell);
+
+            switch(action) {
+                case 'insert-row-above':
+                    const newAbove = row.cloneNode(true);
+                    newAbove.querySelectorAll('td, th').forEach(c => c.innerHTML = '<br>');
+                    row.parentNode.insertBefore(newAbove, row);
+                    break;
+                case 'insert-row-below':
+                    const newBelow = row.cloneNode(true);
+                    newBelow.querySelectorAll('td, th').forEach(c => c.innerHTML = '<br>');
+                    row.parentNode.insertBefore(newBelow, row.nextSibling);
+                    break;
+                case 'delete-row':
+                    if (table.querySelectorAll('tr').length > 1) row.remove();
+                    break;
+                case 'insert-col-left':
+                    table.querySelectorAll('tr').forEach(tr => {
+                        const newCell = document.createElement('td');
+                        newCell.innerHTML = '<br>';
+                        newCell.style.cssText = tr.children[cellIndex]?.style.cssText || '';
+                        tr.insertBefore(newCell, tr.children[cellIndex]);
+                    });
+                    break;
+                case 'insert-col-right':
+                    table.querySelectorAll('tr').forEach(tr => {
+                        const newCell = document.createElement('td');
+                        newCell.innerHTML = '<br>';
+                        newCell.style.cssText = tr.children[cellIndex]?.style.cssText || '';
+                        const ref = tr.children[cellIndex];
+                        tr.insertBefore(newCell, ref?.nextSibling || null);
+                    });
+                    break;
+                case 'delete-col':
+                    if (row.children.length > 1) {
+                        table.querySelectorAll('tr').forEach(tr => tr.children[cellIndex]?.remove());
+                    }
+                    break;
+                case 'delete-table':
+                    table.remove();
+                    break;
+            }
+            quill.update();
+        });
+    </script>
+</body>
+</html>

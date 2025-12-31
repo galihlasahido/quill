@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Lists Example</title>
+    <link rel="stylesheet" href="/packages/quill/dist/dist/quill.snow.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        h1 { margin-bottom: 10px; }
+        p.desc { color: #666; margin-bottom: 20px; }
+        #editor {
+            min-height: 400px;
+            background: white;
+        }
+
+        /* Enhanced list styles */
+        .ql-editor ol[data-list-style="decimal"] { list-style-type: decimal; }
+        .ql-editor ol[data-list-style="roman"] { list-style-type: upper-roman; }
+        .ql-editor ol[data-list-style="roman-lower"] { list-style-type: lower-roman; }
+        .ql-editor ol[data-list-style="alpha"] { list-style-type: upper-alpha; }
+        .ql-editor ol[data-list-style="alpha-lower"] { list-style-type: lower-alpha; }
+
+        /* Checklist styles */
+        .ql-editor li[data-list="check"] {
+            list-style: none;
+        }
+        .ql-editor li[data-list="check"]::before {
+            content: '\2610';
+            margin-right: 8px;
+        }
+        .ql-editor li[data-list="check"].checked::before {
+            content: '\2611';
+        }
+    </style>
+</head>
+<body>
+    <h1>Enhanced Lists</h1>
+    <p class="desc">Various list types including numbered, roman numerals, alphabetic, bullets, and checklists.</p>
+
+    <div id="editor">
+        <p>Select text and choose a list type from the dropdown:</p>
+        <p><br></p>
+        <ol><li>First item (decimal)</li><li>Second item</li><li>Third item</li></ol>
+        <p><br></p>
+        <p>Try different list styles!</p>
+    </div>
+
+    <script src="/packages/quill/dist/dist/quill.js"></script>
+    <script>
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: {
+                    container: [
+                        [{ 'header': [1, 2, false] }],
+                        ['bold', 'italic'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        [{ 'list': ['decimal:1', 'roman:1', 'roman-lower:1', 'alpha:1', 'alpha-lower:1', 'bullet:1', 'check:1'] }],
+                        [{ 'indent': '-1' }, { 'indent': '+1' }],
+                        ['clean']
+                    ],
+                    handlers: {
+                        list: function(value) {
+                            const range = this.quill.getSelection();
+                            if (range) {
+                                if (value) {
+                                    this.quill.formatLine(range.index, range.length || 1, 'list', value);
+                                } else {
+                                    this.quill.formatLine(range.index, range.length || 1, 'list', false);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Customize list picker labels
+        setTimeout(() => {
+            const listPicker = document.querySelector('.ql-picker.ql-list');
+            if (listPicker) {
+                const labels = {
+                    'decimal:1': '1, 2, 3',
+                    'roman:1': 'I, II, III',
+                    'roman-lower:1': 'i, ii, iii',
+                    'alpha:1': 'A, B, C',
+                    'alpha-lower:1': 'a, b, c',
+                    'bullet:1': '\u2022 Bullet',
+                    'check:1': '\u2610 Check'
+                };
+
+                listPicker.querySelectorAll('.ql-picker-item').forEach(item => {
+                    const value = item.getAttribute('data-value');
+                    if (value && labels[value]) {
+                        item.setAttribute('data-label', labels[value]);
+                    }
+                });
+
+                const label = listPicker.querySelector('.ql-picker-label');
+                if (label) {
+                    label.setAttribute('data-label', 'List');
+                }
+            }
+        }, 100);
+
+        // Toggle checklist items on click
+        quill.root.addEventListener('click', function(e) {
+            const li = e.target.closest('li[data-list="check"]');
+            if (li) {
+                li.classList.toggle('checked');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Handling Example</title>
+    <link rel="stylesheet" href="/packages/quill/dist/dist/quill.snow.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        h1 { margin-bottom: 10px; }
+        p.desc { color: #666; margin-bottom: 20px; }
+        #editor {
+            min-height: 400px;
+            background: white;
+        }
+        .ql-editor img {
+            max-width: 100%;
+            cursor: pointer;
+        }
+        .ql-editor img.selected {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        /* Image modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            min-width: 400px;
+        }
+        .modal h3 { margin: 0 0 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 500; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-cancel { background: #eee; }
+        .btn-primary { background: #3b82f6; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Image Handling</h1>
+    <p class="desc">Click the image button to upload. Click images to select, double-click for properties.</p>
+
+    <div id="editor">
+        <p>Upload an image using the toolbar button above.</p>
+        <p>Once uploaded, you can:</p>
+        <ul>
+            <li>Click to select an image</li>
+            <li>Double-click to open properties</li>
+            <li>Press Delete to remove selected image</li>
+        </ul>
+    </div>
+
+    <!-- Image properties modal -->
+    <div id="image-modal" class="modal">
+        <div class="modal-content">
+            <h3>Image Properties</h3>
+            <div class="form-group">
+                <label>Alt Text</label>
+                <input type="text" id="img-alt" placeholder="Describe this image">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Width (px)</label>
+                    <input type="number" id="img-width" placeholder="Auto">
+                </div>
+                <div class="form-group">
+                    <label>Height (px)</label>
+                    <input type="number" id="img-height" placeholder="Auto">
+                </div>
+            </div>
+            <div class="form-group">
+                <label><input type="checkbox" id="img-ratio" checked> Keep aspect ratio</label>
+            </div>
+            <div class="form-group">
+                <label>Alignment</label>
+                <select id="img-align">
+                    <option value="">Inline</option>
+                    <option value="left">Float Left</option>
+                    <option value="right">Float Right</option>
+                    <option value="center">Center</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="applyProps()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/packages/quill/dist/dist/quill.js"></script>
+    <script>
+        // Custom image handler
+        function imageHandler() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.click();
+
+            input.onchange = () => {
+                const file = input.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const range = quill.getSelection(true);
+                        quill.insertEmbed(range.index, 'image', e.target.result);
+                        quill.setSelection(range.index + 1);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+        }
+
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: {
+                    container: [
+                        [{ 'header': [1, 2, false] }],
+                        ['bold', 'italic'],
+                        ['image'],
+                        ['clean']
+                    ],
+                    handlers: {
+                        image: imageHandler
+                    }
+                }
+            }
+        });
+
+        // Image selection
+        let selectedImage = null;
+        let aspectRatio = 1;
+
+        quill.root.addEventListener('click', function(e) {
+            if (e.target.tagName === 'IMG') {
+                if (selectedImage) selectedImage.classList.remove('selected');
+                selectedImage = e.target;
+                selectedImage.classList.add('selected');
+                if (selectedImage.naturalWidth && selectedImage.naturalHeight) {
+                    aspectRatio = selectedImage.naturalWidth / selectedImage.naturalHeight;
+                }
+            } else {
+                if (selectedImage) {
+                    selectedImage.classList.remove('selected');
+                    selectedImage = null;
+                }
+            }
+        });
+
+        // Double-click for properties
+        quill.root.addEventListener('dblclick', function(e) {
+            if (e.target.tagName === 'IMG') {
+                selectedImage = e.target;
+                openModal();
+            }
+        });
+
+        // Delete key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Delete' && selectedImage) {
+                const blot = Quill.find(selectedImage);
+                if (blot) {
+                    const index = quill.getIndex(blot);
+                    quill.deleteText(index, 1);
+                    selectedImage = null;
+                }
+            }
+        });
+
+        // Modal functions
+        const modal = document.getElementById('image-modal');
+
+        function openModal() {
+            if (!selectedImage) return;
+            document.getElementById('img-alt').value = selectedImage.alt || '';
+            document.getElementById('img-width').value = selectedImage.width || '';
+            document.getElementById('img-height').value = selectedImage.height || '';
+
+            const float = selectedImage.style.float;
+            const display = selectedImage.style.display;
+            let align = '';
+            if (float === 'left') align = 'left';
+            else if (float === 'right') align = 'right';
+            else if (display === 'block') align = 'center';
+            document.getElementById('img-align').value = align;
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        // Aspect ratio
+        document.getElementById('img-width').addEventListener('input', function() {
+            if (document.getElementById('img-ratio').checked && this.value) {
+                document.getElementById('img-height').value = Math.round(this.value / aspectRatio);
+            }
+        });
+
+        document.getElementById('img-height').addEventListener('input', function() {
+            if (document.getElementById('img-ratio').checked && this.value) {
+                document.getElementById('img-width').value = Math.round(this.value * aspectRatio);
+            }
+        });
+
+        function applyProps() {
+            if (!selectedImage) return;
+
+            selectedImage.alt = document.getElementById('img-alt').value;
+
+            const width = document.getElementById('img-width').value;
+            const height = document.getElementById('img-height').value;
+            if (width) selectedImage.width = width;
+            if (height) selectedImage.height = height;
+
+            const align = document.getElementById('img-align').value;
+            selectedImage.style.float = '';
+            selectedImage.style.display = '';
+            selectedImage.style.marginLeft = '';
+            selectedImage.style.marginRight = '';
+
+            if (align === 'left') {
+                selectedImage.style.float = 'left';
+                selectedImage.style.marginRight = '10px';
+            } else if (align === 'right') {
+                selectedImage.style.float = 'right';
+                selectedImage.style.marginLeft = '10px';
+            } else if (align === 'center') {
+                selectedImage.style.display = 'block';
+                selectedImage.style.marginLeft = 'auto';
+                selectedImage.style.marginRight = 'auto';
+            }
+
+            closeModal();
+        }
+
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeModal();
+        });
+    </script>
+</body>
+</html>

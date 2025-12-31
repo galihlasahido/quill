@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quill Examples</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .example-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .example-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .example-card h2 {
+            font-size: 18px;
+            margin: 0 0 8px;
+            color: #2563eb;
+        }
+        .example-card p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .example-card .tag {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+        .featured .tag {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quill Editor Examples</h1>
+    <p class="subtitle">A collection of examples demonstrating Quill's capabilities</p>
+
+    <div class="examples">
+        <a href="index.html" class="example-card featured">
+            <h2>Full Featured Editor</h2>
+            <p>Complete implementation with all plugins: tables, lists, images, ruler, dark mode, and more.</p>
+            <span class="tag">Complete</span>
+        </a>
+
+        <a href="basic.html" class="example-card">
+            <h2>Basic Setup</h2>
+            <p>The simplest Quill configuration with default Snow theme.</p>
+            <span class="tag">Beginner</span>
+        </a>
+
+        <a href="toolbar.html" class="example-card">
+            <h2>Custom Toolbars</h2>
+            <p>Different toolbar configurations for various use cases.</p>
+            <span class="tag">Configuration</span>
+        </a>
+
+        <a href="fonts.html" class="example-card">
+            <h2>Custom Fonts & Sizes</h2>
+            <p>How to register and use custom fonts and font sizes.</p>
+            <span class="tag">Formatting</span>
+        </a>
+
+        <a href="tables.html" class="example-card">
+            <h2>Table Support</h2>
+            <p>Insert tables with size selector and context menu for row/column operations.</p>
+            <span class="tag">Tables</span>
+        </a>
+
+        <a href="lists.html" class="example-card">
+            <h2>Enhanced Lists</h2>
+            <p>Multiple list types: decimal, roman, alphabetic, bullets, and checklists.</p>
+            <span class="tag">Lists</span>
+        </a>
+
+        <a href="images.html" class="example-card">
+            <h2>Image Handling</h2>
+            <p>Upload images with selection, properties modal, and alignment options.</p>
+            <span class="tag">Images</span>
+        </a>
+
+        <a href="code-editor.html" class="example-card featured">
+            <h2>Code Editor Plugin</h2>
+            <p>CodeMirror-like code editing with syntax highlighting, line numbers, copy button, and 30+ languages.</p>
+            <span class="tag">Code</span>
+        </a>
+
+        <a href="code-only.html" class="example-card featured">
+            <h2>Pure Code Editor</h2>
+            <p>Standalone code editor like CodeMirror with line numbers, syntax highlighting, run code, and share.</p>
+            <span class="tag">Code</span>
+        </a>
+    </div>
+
+    <footer>
+        <p>Server: <code>npx serve . --listen 3333</code> from quill directory</p>
+        <p>Then visit: <code>http://localhost:3333/packages/example/</code></p>
+    </footer>
+</body>
+</html>
